@@ -3,9 +3,9 @@
 Study based on [ Sentiment analysis of commit comments in GitHub: an empirical study ](https://dl.acm.org/citation.cfm?id=2597118)
 
 ## Requirements
-[ Python 2.x ] https://www.python.org/downloads/release/python-2714/
-[ Virtualenv ](https://virtualenv.pypa.io/en/stable/installation/)
-[ MongoDB ](https://pypi.org/project/pymongo/)
+* [ Python 2.x ](https://www.python.org/downloads/release/python-2714/)
+* [ Virtualenv ](https://virtualenv.pypa.io/en/stable/installation/)
+* [ MongoDB ](https://pypi.org/project/pymongo/)
 
 ## Installation
 #### Setting up the virtual environment
