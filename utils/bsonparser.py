@@ -2,7 +2,6 @@ import os
 import bson
 import csv
 
-# from pymongo import MongoClient
 from bson.json_util import loads
 
 # get main project path (in case this file is compiled alone)
