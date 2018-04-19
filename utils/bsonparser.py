@@ -65,5 +65,5 @@ if __name__ == "__main__":
     # CommentsTabletoJSON(comments_table)
 
     # example on how to retrieve json data from a file
-     rtable = RetrieveJSONTable(context + '/test/comments_table.json')
-     print rtable[0]    # print only the first index of the table for testing
+    rtable = RetrieveJSONTable(context + '/test/comments_table.json')
+    print rtable[0]    # print only the first index of the table for testing
