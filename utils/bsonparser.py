@@ -1,6 +1,6 @@
 import os
 import bson
-import csv
+import json
 
 from bson.json_util import loads
 
@@ -34,19 +34,22 @@ def GetDBTable(collection_name):
         # Schemas for each dictionary in the list can be found at: http://ghtorrent.org/mongo.html)
         return commit_comments
 
-def CommentsTabletoCSV(table):
+def CommentsTabletoJSON(table):
 
-    with open('comments_table.csv','wb') as f:
+    commenttojson = []
+    for comment in table:
+        info = {'commit_id': comment['commit_id'].encode('utf-8'),
+                'body': comment['body'].encode('utf-8')}
+        commenttojson.append(info)
 
-        w = csv.writer(f)
-        w.writerow(['commit_id','body'])
 
-        for comment in table:
-            w.writerow([comment['commit_id'].encode('utf-8').strip('\n'), comment['body'].encode('utf-8').strip('\n')])
+    with open('comments_table.json','wb') as f:
+        json.dump(commenttojson, f)
+
 
 if __name__ == "__main__":
 
     # example run obtaining data for commit_comments collection(table) name
     comments_table = GetDBTable('commit_comments')
 
-    # CommentsTabletoCSV(comments_table)
+    CommentsTabletoJSON(comments_table)

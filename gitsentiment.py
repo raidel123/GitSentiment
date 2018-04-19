@@ -12,4 +12,6 @@ if __name__ == "__main__":
     # example run obtaining data for commit_comments collection(table) name
     comments_table = bsonparse.GetDBTable('commit_comments')
     for comment in comments_table:
-        print comment['repo']
+        if 'commit_id' in comment:
+            print comment['commit_id']
+            break   # just print 1 value for testing
