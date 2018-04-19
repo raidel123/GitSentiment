@@ -1,5 +1,6 @@
 import os
 import bson
+import csv
 # import sqlite3
 # import pandas as pd
 
@@ -27,7 +28,18 @@ def GetDBTable(collection_name):
         # return is a dictionary (schemas can be found in documentation url fields: http://ghtorrent.org/mongo.html)
         return commit_comments
 
+def TabletoCSV(table):
+
+    with open('comments_table.csv','wb') as f:
+        w = csv.writer(f)
+        w.writerow(['commit_id','body'])
+
+        for comment in table:
+            w.writerow([comment['commit_id'].encode('utf-8'), comment['body'].encode('utf-8')])
+
 if __name__ == "__main__":
 
     # example run obtaining data for commit_comments collection(table) name
-    GetDBTable('commit_comments')
+    comments_table = GetDBTable('commit_comments')
+
+    TabletoCSV(comments_table)
