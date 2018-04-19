@@ -1,8 +1,6 @@
 import os
 import bson
 import csv
-# import sqlite3
-# import pandas as pd
 
 # from pymongo import MongoClient
 from bson.json_util import loads
