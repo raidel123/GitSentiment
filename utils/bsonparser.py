@@ -5,13 +5,13 @@ import json
 from bson.json_util import loads
 
 # get main project path (in case this file is compiled alone)
-cwd = os.getcwd().split('/')
-if cwd[-1] == 'utils':
-    cwd = '/'.join(cwd[:-1])
+context = os.getcwd().split('/')
+if context[-1] == 'utils':
+    context = '/'.join(context[:-1])
 else:
-    cwd = os.getcwd()
+    context = os.getcwd()
 
-dump_location = cwd + '/dump/msr14/'
+dump_location = context + '/dump/msr14/'
 bson_ext = '.bson'
 
 # collection names (parameter types) can be found here: http://ghtorrent.org/mongo.html
@@ -36,6 +36,8 @@ def GetDBTable(collection_name):
 
 def CommentsTabletoJSON(table):
 
+    # creates a list of dictionaries for each commit comment in db table,
+    # each dictionary inside the list contains a field (key) for ( commit_id, body ).
     commenttojson = []
     for comment in table:
         info = {'commit_id': comment['commit_id'].encode('utf-8'),
@@ -46,10 +48,17 @@ def CommentsTabletoJSON(table):
     with open('comments_table.json','wb') as f:
         json.dump(commenttojson, f)
 
+# filename of json file to input as parameter
+def RetrieveJSONTable(filename):
+    with open(filename,'rb') as f:
+        return json.load(f)
 
 if __name__ == "__main__":
 
     # example run obtaining data for commit_comments collection(table) name
     comments_table = GetDBTable('commit_comments')
 
-    CommentsTabletoJSON(comments_table)
+    # function call below used to create a json file in current directory
+    # CommentsTabletoJSON(comments_table)
+
+    print RetrieveJSONTable(context + '/comments_table.json')[0]
