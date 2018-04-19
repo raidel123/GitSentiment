@@ -14,8 +14,7 @@ import bsonparser as bsonparse
 if __name__ == "__main__":
 
     # TODO: this is the main file, call necessary functions
-
-
+    
 
     # code below this line is for testing purposes
 
