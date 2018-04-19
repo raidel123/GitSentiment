@@ -29,9 +29,9 @@ def GetDBTable(collection_name):
         commit_comments = bson.decode_all( f.read() )
 
         # TODO remove prints, provided to look at the data that was obtained
-        print commit_comments[0], '\n'            # dictionary, print single comment
-        print commit_comments[0].keys(), '\n'     # dictionary, print single comment keys
-        print commit_comments[0].values(), '\n'   # dictionary, print single comment values
+        # print commit_comments[0], '\n'            # dictionary, print single comment
+        # print commit_comments[0].keys(), '\n'     # dictionary, print single comment keys
+        # print commit_comments[0].values(), '\n'   # dictionary, print single comment values
 
         # returns a list of dictionary (each dictionary is a single comments info)
         # Schemas for each dictionary in the list can be found at: http://ghtorrent.org/mongo.html)
