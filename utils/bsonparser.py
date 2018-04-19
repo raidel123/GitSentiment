@@ -42,7 +42,7 @@ def CommentsTabletoCSV(table):
         w.writerow(['commit_id','body'])
 
         for comment in table:
-            w.writerow([comment['commit_id'].encode('utf-8'), comment['body'].encode('utf-8')])
+            w.writerow([comment['commit_id'].encode('utf-8').strip('\n'), comment['body'].encode('utf-8').strip('\n')])
 
 if __name__ == "__main__":
 
