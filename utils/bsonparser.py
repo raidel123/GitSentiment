@@ -26,8 +26,9 @@ def GetDBTable(collection_name):
         commit_comments = bson.decode_all( f.read() )
 
         # TODO remove prints, provided to look at the data that was obtained
+        print 'Printing table keys for: %s\n' % collection_name
         # print commit_comments[0], '\n'            # dictionary, print single comment
-        # print commit_comments[0].keys(), '\n'     # dictionary, print single comment keys
+        print commit_comments[0].keys(), '\n'     # dictionary, print single comment keys
         # print commit_comments[0].values(), '\n'   # dictionary, print single comment values
 
         # returns a list of dictionary (each dictionary is a single comments info)
@@ -61,4 +62,6 @@ if __name__ == "__main__":
     # function call below used to create a json file in current directory
     # CommentsTabletoJSON(comments_table)
 
-    print RetrieveJSONTable(context + '/comments_table.json')[0]
+    # example on how to retrieve json data from a file
+     rtable = RetrieveJSONTable(context + '/comments_table.json')
+     print rtable[0]    # print only the first index of the table for testing
