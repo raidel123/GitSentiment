@@ -30,9 +30,9 @@ Deactivating (after executing program)
     $ wget http://ghtorrent-downloads.ewi.tudelft.nl/datasets/msr14-mongo.tar.gz
     $ tar zxvf msr14-mongo.tar.gz
 ```
-[ MongoDB database dump ](http://ghtorrent-downloads.ewi.tudelft.nl/datasets/msr14-mysql.gz) (if commands above do not work)
+[ MongoDB database dump ](http://ghtorrent-downloads.ewi.tudelft.nl/datasets/msr14-mysql.gz) (if wget command above doesn't work)
 
 ## Run
 ```
-    $ python gitsentiment.py
+    $ python gitSentiment.py
 ```
