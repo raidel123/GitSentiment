@@ -34,5 +34,5 @@ Deactivating (after executing program)
 
 ## Run
 ```
-    $ python bsonparser.py
+    $ python gitsentiment.py
 ```
