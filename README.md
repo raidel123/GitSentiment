@@ -19,19 +19,18 @@ Deactivating (after executing program)
     $ deactivate
 ```
 #### Installing Requirements
-(after activating virtual environment)
 ```
     $ pip install -r requirements.txt
 ```
 
 ## Database Setup/Download
 [ MSR 2014 Mining Challenge Dataset ](http://ghtorrent.org/msr14.html)
-[ MongoDB database dump ](http://ghtorrent-downloads.ewi.tudelft.nl/datasets/msr14-mysql.gz)
-(perform these operations within the main repo directory, it should create a dump directory)
+* perform these operations within the main repo directory, it should create a dump directory
 ```
     $ wget http://ghtorrent-downloads.ewi.tudelft.nl/datasets/msr14-mongo.tar.gz
     $ tar zxvf msr14-mongo.tar.gz
 ```
+[ MongoDB database dump ](http://ghtorrent-downloads.ewi.tudelft.nl/datasets/msr14-mysql.gz) (if commands above do not work)
 
 ## Run
 ```
