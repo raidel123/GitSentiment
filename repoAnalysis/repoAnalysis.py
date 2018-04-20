@@ -18,9 +18,9 @@ needed for pylint analyzation (will create temp file of user code to analyze)
 import tempfile
 
 """
-subprocess for humans (needed to invoke pylint)
+Used to hide stdout of pylint command
 """
-import delegator
+import sys, os
 
 """
 Store login credentials in separate file
@@ -79,37 +79,43 @@ def connect_to_db():
     pass
 
 """
-TODO: analyze all of the user's repositories, and determine code quality by folloing measures:
-    * ratio of comments to code
-    * readme complexity
-then deterimne score
+go through all top level python documents within python projects and run them through pylint
+then average score for that user
 """
-def determine_code_quality(user):
-    for repo in user.get_repos():
+def determine_code_quality(user, git_user):
+    for repo in git_user.get_repos():
         if repo.language == "Python":
             for fs in repo.get_dir_contents('/'):
                 if fs.name.endswith(".py"):
                     with tempfile.NamedTemporaryFile() as temp:
+                        # write string of decoded file to a temp file so pylint can read from it
                         temp.write(fs.decoded_content)
                         temp.flush()
-                        #c = delegator.run("pylint " + temp.name)
-                        results = Run([temp.name], exit=False,)
-                        # print results.linter.stats
-                        # pylint_stdout, pylint_stderr = lint.py_run(f.name , return_std=True)
-                        # print pylint_stderr.getvalue()
+
+                        # temporarily hide stdout b/c Run will print there no matter what
+                        _stdout = sys.stdout
+                        _stderr = sys.stderr
+                        null = open(os.devnull, 'wb')
+                        sys.stdout = sys.stderr = null
+
+                        # run pylint on temp file
+                        results = Run([temp.name], exit=False)
+
+                        # restore stdout
+                        sys.stdout = _stdout
+                        sys.stderr = _stderr
+                        user.add_quality_score(results.linter.stats['global_note'])
                         temp.close()
 
-    pass
+    
 
 if __name__ == '__main__':
     g = authenticate()
     
     #TODO: read userid from SQL database to be added by andrew
+    user = Users("raidel123", 0)
+    git_user = g.get_user(user.username)
     
-    user = g.get_user("raidel123")
-    repo = user.get_repo("UnixShell")
-    f = repo.get_file_contents("/myls.c")
-    
-    determine_code_quality(user)
-    #print f.decoded_content 
+    determine_code_quality(user, git_user)
+    print user.username, user.qualityAverage, user.qualityScore
 
