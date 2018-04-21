@@ -1,3 +1,7 @@
+"""
+Template for Database wrapper found here: https://gist.github.com/goldsborough/c973d934f620e16678bf
+Modifications made to better handle some edge cases
+"""
 ###########################################################################
 #
 ## @file DB.py
@@ -5,6 +9,7 @@
 ###########################################################################
 
 import sqlite3
+import os
 
 ###########################################################################
 #
@@ -43,20 +48,20 @@ class Database:
     #
     #######################################################################
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, create=False):
 
         self.conn = None
         self.cursor = None
 
         if name:
-            self.open(name)
+            self.open(name, create)
 
     #######################################################################
     #
     ## Opens a new database connection.
     #
-    #  This function manually opens a new database connection. The database
-    #  can also be opened in the constructor or as a context manager.
+    #  This function manually opens a new database connection if database already exists.
+    #  The database can also be opened in the constructor or as a context manager.
     #
     #  @param name The name of the database to open.
     #
@@ -64,8 +69,9 @@ class Database:
     #
     #######################################################################
 
-    def open(self, name):
-
+    def open(self, name, create=False):
+        if not create and not os.path.isfile(name):
+            raise ValueError('db does not exist')
         try:
             self.conn = sqlite3.connect(name)
             self.cursor = self.conn.cursor()

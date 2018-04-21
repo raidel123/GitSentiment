@@ -3,7 +3,7 @@ PyGitHub(github) is a Python (2 and 3) library to access the GitHub API v3.
 This library enables you to manage GitHub resources such as repositories, user profiles, and organizations 
 in your Python applications.
 """
-from github import *
+from github import Github, BadCredentialsException
 from Users import Users
 
 """
@@ -54,7 +54,14 @@ Github() initialization does not throw error on its own
 Finally, check to see if github APIv3 is up, terminate if not
 """
 def authenticate():
-    g = Github(PERSONAL_ACCESS_TOKEN)
+    try:
+        g = Github(PERSONAL_ACCESS_TOKEN)
+    except NameError:
+        try:
+            g = Github(USER, PASSWORD)
+        except BadCredentialsException:
+            print "error with credentials"
+            exit()
 
     try:
         g.get_user("test")
@@ -72,7 +79,8 @@ def authenticate():
     return g
 
 """
-TODO: retrieve users from SQL database and create array of Users objects initializing them with data from db
+retrieve users from SQL database and create array of Users objects initializing them with data from db
+@param db Established Database object
 """
 def retrieve_users(db):
     user_list_str = db.get('Users', 'commentor_login, sentiment_score', 100)
@@ -81,19 +89,22 @@ def retrieve_users(db):
         users.append(Users(u[0], u[1]))
     return users
     
-
 """
-TODO: establish connection with Andrew's database
+Attempt to establish connection with database
+@param f Path to sqlite file
 """
 def connect_to_db(f):
-    db = Database()
-    db.open(f)
+    try:
+        db = Database(f)
+    except ValueError:
+        print "{0} not found!".format(f)
+        exit()
     return db
 
 """
 determine code quality of file temp with pylint 
-params: temporaryfile
-ret: float
+@params temp TemporarFile object created by examine_user_files
+@ret float Code quality score determine by PyLint
 """
 def get_code_quality_py(temp):
     # temporarily hide stdout, stderr b/c pylint's Run will print there no matter what
@@ -113,6 +124,8 @@ def get_code_quality_py(temp):
 """
 go through all top level documents within projects and run them through language appropriate linters
 then average score for that user
+@param user Users object which will keep track of individual users quality score
+@param git_user Authenticated GitHub user needed to get repo information
 """
 def examine_user_files(user, git_user):
     for repo in git_user.get_repos():
@@ -124,14 +137,11 @@ def examine_user_files(user, git_user):
                         temp.write(fs.decoded_content)
                         temp.flush()
                         user.add_quality_score(get_code_quality_py(temp))
-                        temp.close()
-                   
+                        temp.close()  
 
-    
-
-if __name__ == '__main__':
+def main():
     g = authenticate()
-    
+
     #TODO: read userid from SQL database to be added by andrew
     db = connect_to_db('temp.sql')
     users = retrieve_users(db)
@@ -141,3 +151,6 @@ if __name__ == '__main__':
         examine_user_files(u, git_user)
         print u.username, u.qualityAverage, u.qualityScore
 
+
+if __name__ == '__main__':
+   main()
