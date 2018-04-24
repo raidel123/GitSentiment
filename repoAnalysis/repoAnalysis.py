@@ -28,6 +28,18 @@ wrapper for database connection
 from DB import Database
 
 """
+TODO
+used to run subprocess in a more readable fashion
+needed to run g++
+"""
+from delegator import *
+
+"""
+used to find most common repo langauge for a github user
+"""
+from collections import Counter
+
+"""
 Store login credentials in separate file
 Obtain personal access code by following steps here: https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/
 
@@ -121,6 +133,13 @@ def get_code_quality_py(temp):
     sys.stderr = _stderr
     return results.linter.stats['global_note']
 
+def get_code_quality_cpp(temp):
+    """TODO"""
+
+def get_most_used_language(git_user):
+    return Counter([repo.language for repo in git_user.get_repos()]).most_common(1)[0][0]
+
+
 """
 go through all top level documents within projects and run them through language appropriate linters
 then average score for that user
@@ -129,25 +148,29 @@ then average score for that user
 """
 def examine_user_files(user, git_user):
     for repo in git_user.get_repos():
-        if repo.language == "Python":
+        if(repo.language == user.language):
             for fs in repo.get_dir_contents('/'):
                 if fs.name.endswith(".py"):
-                     with tempfile.NamedTemporaryFile() as temp:
+                    with tempfile.NamedTemporaryFile() as temp:
                         # write string of decoded file to a temp file so pylint can read from it
                         temp.write(fs.decoded_content)
                         temp.flush()
                         user.add_quality_score(get_code_quality_py(temp))
-                        temp.close()  
+                        temp.close()
 
+                    # else if fs.name.endswith(".cpp"):
+                    #     user.add_quality_score(get_code_quality_cpp(temp))
 def main():
     g = authenticate()
 
     #TODO: read userid from SQL database to be added by andrew
     db = connect_to_db('temp.sql')
     users = retrieve_users(db)
+    
 
     for u in users:
         git_user = g.get_user(u.username)
+        u.language = get_most_used_language(git_user)
         examine_user_files(u, git_user)
         print u.username, u.qualityAverage, u.qualityScore
 

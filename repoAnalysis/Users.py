@@ -9,6 +9,7 @@ class Users:
         self.qualityScore = 0
         self.qualityAverage = 0
         self.dataCount = 0
+        self.language = ""
     
     def add_quality_score(self, score):
         self.qualityScore += score
