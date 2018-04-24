@@ -18,7 +18,7 @@ Deactivating (after executing program)
 ```
     $ deactivate
 ```
-#### Installing Requirements
+#### Installation Requirements
 ```
     $ pip install -r requirements.txt
 ```

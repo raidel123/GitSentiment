@@ -104,3 +104,4 @@ ENV/
 dump/
 *.gz
 data.py
+venv2

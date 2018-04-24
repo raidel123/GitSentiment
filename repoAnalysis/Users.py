@@ -7,6 +7,10 @@ class Users:
         self.username = username
         self.sentiment = sentiment
         self.qualityScore = 0
+        self.qualityAverage = 0
+        self.dataCount = 0
     
     def add_quality_score(self, score):
         self.qualityScore += score
+        self.dataCount += 1
+        self.qualityAverage = self.qualityScore/self.dataCount

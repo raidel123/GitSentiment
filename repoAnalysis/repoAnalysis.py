@@ -3,7 +3,7 @@ PyGitHub(github) is a Python (2 and 3) library to access the GitHub API v3.
 This library enables you to manage GitHub resources such as repositories, user profiles, and organizations 
 in your Python applications.
 """
-from github import *
+from github import Github, BadCredentialsException
 from Users import Users
 
 """
@@ -18,9 +18,14 @@ needed for pylint analyzation (will create temp file of user code to analyze)
 import tempfile
 
 """
-subprocess for humans (needed to invoke pylint)
+Used to hide stdout of pylint command
 """
-import delegator
+import sys, os
+
+"""
+wrapper for database connection
+"""
+from DB import Database
 
 """
 Store login credentials in separate file
@@ -49,7 +54,14 @@ Github() initialization does not throw error on its own
 Finally, check to see if github APIv3 is up, terminate if not
 """
 def authenticate():
-    g = Github(PERSONAL_ACCESS_TOKEN)
+    try:
+        g = Github(PERSONAL_ACCESS_TOKEN)
+    except NameError:
+        try:
+            g = Github(USER, PASSWORD)
+        except BadCredentialsException:
+            print "error with credentials"
+            exit()
 
     try:
         g.get_user("test")
@@ -67,49 +79,78 @@ def authenticate():
     return g
 
 """
-TODO: retrieve users from SQL database and create array of Users objects initializing them with data from db
+retrieve users from SQL database and create array of Users objects initializing them with data from db
+@param db Established Database object
 """
-def retrieve_users():
-    pass
+def retrieve_users(db):
+    user_list_str = db.get('Users', 'commentor_login, sentiment_score', 100)
+    users = []
+    for u in user_list_str:
+        users.append(Users(u[0], u[1]))
+    return users
+    
+"""
+Attempt to establish connection with database
+@param f Path to sqlite file
+"""
+def connect_to_db(f):
+    try:
+        db = Database(f)
+    except ValueError:
+        print "{0} not found!".format(f)
+        exit()
+    return db
 
 """
-TODO: establish connection with Andrew's database
+determine code quality of file temp with pylint 
+@params temp TemporarFile object created by examine_user_files
+@ret float Code quality score determine by PyLint
 """
-def connect_to_db():
-    pass
+def get_code_quality_py(temp):
+    # temporarily hide stdout, stderr b/c pylint's Run will print there no matter what
+    _stdout = sys.stdout
+    _stderr = sys.stderr
+    null = open(os.devnull, 'wb')
+    sys.stdout = sys.stderr = null
+
+    # run pylint on temp file
+    results = Run([temp.name], exit=False)
+
+    # restore stdout
+    sys.stdout = _stdout
+    sys.stderr = _stderr
+    return results.linter.stats['global_note']
 
 """
-TODO: analyze all of the user's repositories, and determine code quality by folloing measures:
-    * ratio of comments to code
-    * readme complexity
-then deterimne score
+go through all top level documents within projects and run them through language appropriate linters
+then average score for that user
+@param user Users object which will keep track of individual users quality score
+@param git_user Authenticated GitHub user needed to get repo information
 """
-def determine_code_quality(user):
-    for repo in user.get_repos():
+def examine_user_files(user, git_user):
+    for repo in git_user.get_repos():
         if repo.language == "Python":
             for fs in repo.get_dir_contents('/'):
                 if fs.name.endswith(".py"):
-                    with tempfile.NamedTemporaryFile() as temp:
+                     with tempfile.NamedTemporaryFile() as temp:
+                        # write string of decoded file to a temp file so pylint can read from it
                         temp.write(fs.decoded_content)
                         temp.flush()
-                        #c = delegator.run("pylint " + temp.name)
-                        results = Run([temp.name], exit=False,)
-                        # print results.linter.stats
-                        # pylint_stdout, pylint_stderr = lint.py_run(f.name , return_std=True)
-                        # print pylint_stderr.getvalue()
-                        temp.close()
+                        user.add_quality_score(get_code_quality_py(temp))
+                        temp.close()  
 
-    pass
+def main():
+    g = authenticate()
+
+    #TODO: read userid from SQL database to be added by andrew
+    db = connect_to_db('temp.sql')
+    users = retrieve_users(db)
+
+    for u in users:
+        git_user = g.get_user(u.username)
+        examine_user_files(u, git_user)
+        print u.username, u.qualityAverage, u.qualityScore
+
 
 if __name__ == '__main__':
-    g = authenticate()
-    
-    #TODO: read userid from SQL database to be added by andrew
-    
-    user = g.get_user("raidel123")
-    repo = user.get_repo("UnixShell")
-    f = repo.get_file_contents("/myls.c")
-    
-    determine_code_quality(user)
-    #print f.decoded_content 
-
+   main()
