@@ -36,3 +36,6 @@ Deactivating (after executing program)
 ```
     $ python gitSentiment.py
 ```
+## Other functionality
+If you want to run the repoAnalysis, you must have the latest version of [node](https://nodejs.org/en/download/package-manager/), and you must install the JS linter via `npm install -g standard --save-devsour`. For all dependencies (assuming npm and pip on system), just run `./install.sh`
+
