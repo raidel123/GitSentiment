@@ -28,16 +28,19 @@ wrapper for database connection
 from DB import Database
 
 """
-TODO
-used to run subprocess in a more readable fashion
-needed to run g++
+needed to run standard
 """
-from delegator import *
+from subprocess import PIPE, Popen
 
 """
 used to find most common repo langauge for a github user
 """
 from collections import Counter
+
+"""
+used to determine number of warnings for ruby's linter
+"""
+import re
 
 """
 Store login credentials in separate file
@@ -55,6 +58,10 @@ except  ImportError:
     except:
         raise ImportError('check to see if you have a data.py in repoAnalysis directory')
 
+"""
+Languages in which we can analyze (determined by the linters installed)
+"""
+VALID_LANGUAGES = ["Python", "C++", "JavaScript", "Ruby"]
 
 """
 Attempt to authenticate user with personal access token
@@ -115,7 +122,7 @@ def connect_to_db(f):
 
 """
 determine code quality of file temp with pylint 
-@params temp TemporarFile object created by examine_user_files
+@params temp TemporarFile name created by examine_user_files
 @ret float Code quality score determine by PyLint
 """
 def get_code_quality_py(temp):
@@ -126,19 +133,59 @@ def get_code_quality_py(temp):
     sys.stdout = sys.stderr = null
 
     # run pylint on temp file
-    results = Run([temp.name], exit=False)
+    results = Run([temp], exit=False)
 
     # restore stdout
     sys.stdout = _stdout
     sys.stderr = _stderr
     return results.linter.stats['global_note']
 
-def get_code_quality_cpp(temp):
-    """TODO"""
+"""
+will determine the code quality by examining ratio of linter warnings to length of code
+@params temp Name of NamedTemporaryFile to be analyzed
+@params linter Name of linter command line utility to run
+@ret float Code quality socre (if no warnigs, return a perfect score)
+"""
+def get_code_quality(temp, linter):
+    proc = Popen([linter, temp], stdout = PIPE, stderr=PIPE)
+    warning_output = proc.stdout.read()
+    num_lines = get_num_lines(temp)
+    try:
+        return float(num_lines) / warning_output.count('\n')
+    except ZeroDivisionError:
+        return 10
 
+
+"""
+will determine the code quality by examining ratio of linter warnings to length of code
+ruby linter lists the number of warnings so we need to use regex to get this amount
+@params temp Name of NamedTemporaryFile to be analyzed
+@ret float Code quality socre (if no warnigs, return a perfect score)
+"""
+def get_code_quality_rb(temp):
+    proc = Popen(["excellent", temp], stdout=PIPE, stderr=PIPE)
+    warning_output = proc.stdout.read()
+    num_warnings = re.search("Found (.*) warnings.", warning_output).group(1)
+    num_lines = get_num_lines(temp)
+    try:
+        return float(num_lines) / int(num_warnings)
+    except ZeroDivisionError:
+        return 10
+
+"""
+examine a Github users repositories, searching for their most used language
+@params git_user Github user object
+@ret string most common language used
+"""
 def get_most_used_language(git_user):
     return Counter([repo.language for repo in git_user.get_repos()]).most_common(1)[0][0]
 
+"""
+@params temp Name of NamedTemporaryFile
+@ret int Number of lines in file
+"""
+def get_num_lines(temp):
+    return sum(1 for line in open(temp))
 
 """
 go through all top level documents within projects and run them through language appropriate linters
@@ -147,32 +194,59 @@ then average score for that user
 @param git_user Authenticated GitHub user needed to get repo information
 """
 def examine_user_files(user, git_user):
+    if user.language not in VALID_LANGUAGES:
+        return -1
     for repo in git_user.get_repos():
-        if(repo.language == user.language):
+        if repo.language in VALID_LANGUAGES and repo.language == user.language:
             for fs in repo.get_dir_contents('/'):
-                if fs.name.endswith(".py"):
-                    with tempfile.NamedTemporaryFile() as temp:
+                if fs.name.endswith(".py") and repo.language == "Python":
+                    with tempfile.NamedTemporaryFile(suffix='.py') as temp:
                         # write string of decoded file to a temp file so pylint can read from it
                         temp.write(fs.decoded_content)
                         temp.flush()
-                        user.add_quality_score(get_code_quality_py(temp))
+                        user.add_quality_score(get_code_quality_py(temp.name))
                         temp.close()
 
-                    # else if fs.name.endswith(".cpp"):
-                    #     user.add_quality_score(get_code_quality_cpp(temp))
+                elif fs.name.endswith(".js") and repo.language == "JavaScript":
+                    with tempfile.NamedTemporaryFile(suffix='.js') as temp:
+                        # write string of decoded file to a temp file so pylint can read from it
+                        temp.write(fs.decoded_content)
+                        temp.flush()
+                        user.add_quality_score(get_code_quality(temp.name, "standard"))
+                        temp.close()
+
+                elif fs.name.endswith(".cpp") and repo.language == "C++":
+                    with tempfile.NamedTemporaryFile(suffix='.cpp') as temp:
+                        # write string of decoded file to a temp file so pylint can read from it
+                        temp.write(fs.decoded_content)
+                        temp.flush()
+                        user.add_quality_score(get_code_quality(temp.name, "python cpplint.py"))
+                        temp.close()
+                        
+                elif fs.name.endswith(".rb") and repo.language == "Ruby":
+                     with tempfile.NamedTemporaryFile(suffix='.rb') as temp:
+                        # write string of decoded file to a temp file so pylint can read from it
+                        temp.write(fs.decoded_content)
+                        temp.flush()
+                        user.add_quality_score(get_code_quality_rb(temp.name))
+                        temp.close()
+
 def main():
     g = authenticate()
 
     #TODO: read userid from SQL database to be added by andrew
-    db = connect_to_db('temp.sql')
-    users = retrieve_users(db)
-    
+    sentiment_db = connect_to_db('temp.sql')
+    users = retrieve_users(sentiment_db)
 
+    results_db = connect_to_db('results.sql')
+    
     for u in users:
         git_user = g.get_user(u.username)
         u.language = get_most_used_language(git_user)
         examine_user_files(u, git_user)
-        print u.username, u.qualityAverage, u.qualityScore
+        print u.username, u.language, u.sentiment, u.qualityAverage
+        results_db.write('Users', ['commentor_login', 'language', 'sentiment_score', 'quality'], \
+                                  [u.username, u.language, u.sentiment, u.qualityAverage])
 
 
 if __name__ == '__main__':
