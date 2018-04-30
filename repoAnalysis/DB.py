@@ -74,6 +74,7 @@ class Database:
             raise ValueError('db does not exist')
         try:
             self.conn = sqlite3.connect(name)
+            self.conn.row_factory = sqlite3.Row
             self.cursor = self.conn.cursor()
 
         except sqlite3.Error as e:
@@ -181,12 +182,15 @@ class Database:
     #
     #######################################################################
 
-    def write(self, table, columns, data):
+    def write(self, table, columns, parameterized, data):
 
-        query = "INSERT INTO {0} ({1}) VALUES ({2});".format(
-            table, columns, data)
-
-        self.cursor.execute(query)
+        query = "INSERT OR REPLACE INTO {0} ({1}) VALUES ({2});".format(
+            table, columns, parameterized)
+        try:
+            self.cursor.execute(query, data)
+            self.conn.commit()
+        except sqlite3.IntegrityError as e:
+            print e.message
 
     #######################################################################
     #
