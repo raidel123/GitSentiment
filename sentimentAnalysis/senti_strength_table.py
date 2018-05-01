@@ -22,7 +22,7 @@ if __name__ == "__main__":
 						 FROM commit_comments
 			INNER JOIN commits on commit_comments.id = commits.id
 			INNER JOIN projects on commits.project_id = projects.id
-			INNER JOIN users on commits.author_id = users.id"""
+			INNER JOIN users on commit_comments.user_id = users.id"""
 
 	# dict for storing the data need for SentiStrength analysis
 
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 			pos = rows[0][0]
 			neg = rows[0][1]
 
-		with sqlite.connect('./whole_database.db') as con:
+		with sqlite.connect('./whole_database_new.db') as con:
 			con.text_factory = str
 			cur = con.cursor() # get the current spot for executing
 			cur.execute("""INSERT INTO commit_sentiments
@@ -60,8 +60,8 @@ if __name__ == "__main__":
 				 commit_sha,
 				 project_name,
 				 project_language,
-				 committer_email,
-				 committer_login,
+				 commenter_email,
+				 commenter_login,
 				 location,
 				 sentiment_pos, 
 				 sentiment_neg)

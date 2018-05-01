@@ -4,9 +4,9 @@ import sqlite3 as sqlite
 
 if __name__ == "__main__":
 
-	with sqlite.connect('./whole_database.db') as con:	
+	with sqlite.connect('./whole_database_new.db') as con:	
 		cur = con.cursor() # get the current spot for executing		
-		cur.execute("SELECT * FROM commit_sentiments LIMIT 1000")
+		cur.execute("SELECT count(*) FROM commit_sentiments")
 		rows = cur.fetchall()
 
     	print(rows)
