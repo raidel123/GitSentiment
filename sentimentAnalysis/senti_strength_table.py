@@ -10,10 +10,19 @@ if __name__ == "__main__":
 	# retrieves the result from the query and then formats into a dictionary
 	# that will be dumped to be parsed by SentiStrength
 
-	query = """SELECT commit_comments.id, sha, body, projects.name, projects.language, commit_comments.created_at, users.login, users.email, users.name FROM commit_comments
+	query = """SELECT commit_comments.id, 
+					  body,
+					  commit_comments.created_at, 
+					  sha,
+					  projects.name, 
+					  projects.language,
+					  users.email,
+					  users.login,
+					  users.location
+						 FROM commit_comments
 			INNER JOIN commits on commit_comments.id = commits.id
 			INNER JOIN projects on commits.project_id = projects.id
-			INNER JOIN users on commits.author_id = users.id LIMIT 1000"""
+			INNER JOIN users on commits.author_id = users.id"""
 
 	# dict for storing the data need for SentiStrength analysis
 
@@ -22,27 +31,43 @@ if __name__ == "__main__":
 	for row in db_utils.do_my_query(query).fetchall():
 		
 		ccid = row[0]
-		sha = row[1]
-		body = row[2]
-		project_name = row[3]
-		language = row[4]
-		cc_created_at = row[5]
-		commenter_login = row[6]
-		commenter_email = row[7]
-		#commenter_
+		body = row[1]
+		created_at = row[2]
+		sha = row[3]
+		project_name = row[4]
+		language = row[5]
+		email = row[6]
+		login = row[7]
+		loc = row[8]
 
-		pos, neg = senti_strength_sentiment.RateSentiment(body)
+		pos = ""
+		neg = ""
 
-		print({"comment_id": ccid, 
-				  "sha": sha,
-				  "body": body,
-				  "project_name": project_name,
-				  "pos_sentiment": pos[0],
-				  "neg_sentiment": neg[0], # need negative sign
-				  "cc_created_at": cc_created_at,
-				  "project_language": language})
+		with sqlite.connect('./database_sentiments.db') as con:
+			cur = con.cursor() # get the current spot for executing		
+			cur.execute("SELECT sentiment_pos, sentiment_neg FROM commit_sentiments_store WHERE commit_comment_id =?", (ccid,))
+			rows = cur.fetchall()
+			pos = rows[0][0]
+			neg = rows[0][1]
 
-	# stores all of this in ss_ready.json so that it can be processed on a Windows machine
-	# to be able to be processed by SentiStrength
+		with sqlite.connect('./whole_database.db') as con:
+			con.text_factory = str
+			cur = con.cursor() # get the current spot for executing
+			cur.execute("""INSERT INTO commit_sentiments
+				(commit_comment_id, 
+				 commit_comment_body,
+				 created_at,
+				 commit_sha,
+				 project_name,
+				 project_language,
+				 committer_email,
+				 committer_login,
+				 location,
+				 sentiment_pos, 
+				 sentiment_neg)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", 
+				(ccid, sha, body, created_at, project_name, language, email, login, loc, pos, neg)) # execute insert to add the score and name
+			con.commit() # commit the query
 
-	print(l)
+
+	print(row)
