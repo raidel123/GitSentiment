@@ -9,6 +9,8 @@ from texttable import Texttable
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import stats
+from scipy.stats import norm
 
 
 # get main project path (in case this file is compiled alone)
@@ -51,12 +53,15 @@ def EmotionsProject():
             projectEmotion[row['project_name']] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
 
     for key in sorted(projectEmotion,  key=lambda k: len(projectEmotion[k]), reverse=True)[:6]:
-        top6.append([key, reduce(lambda x, y: x + y, projectEmotion[key]) / len(projectEmotion[key])])
+        print 'mean:', norm.stats(projectEmotion[key], moments='ms')
+        print 'mean:', stats.tmean(projectEmotion[key])
+        print 'std dev:', stats.tstd(projectEmotion[key])
+        top6.append([key, reduce(lambda x, y: x + y, projectEmotion[key]) / len(projectEmotion[key]), len(projectEmotion[key])])
 
     print "Top 6\n"
 
     t = Texttable()
-    t.add_rows([['Project', 'Emotion Score Average']] + top6)
+    t.add_rows([['Project', 'Emotion Score Average', 'Commits']] + top6)
     print t.draw()
 
     # objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
@@ -110,11 +115,11 @@ def EmotionsProjectProportion():
         neut_val = float(len(projectEmotion[key]['neutral'])) / float(len(projectEmotion[key]['negative']) + len(projectEmotion[key]['neutral']) + len(projectEmotion[key]['positive']))
         pos_val = float(len(projectEmotion[key]['positive'])) / float(len(projectEmotion[key]['negative']) + len(projectEmotion[key]['neutral']) + len(projectEmotion[key]['positive']))
 
+        '''
         print 'neg:', neg_val
         print 'neut:', neut_val
         print 'pos:', pos_val
 
-        '''
         if len(projectEmotion[key]['negative']) != 0:
             neg_val = reduce(lambda x, y: x + y, projectEmotion[key]['negative']) / len(projectEmotion[key]['negative'])
 
@@ -144,8 +149,6 @@ def EmotionsProjectProportion():
     p3 = plt.bar(y_pos, pos_avg, align='center')
     p2 = plt.bar(y_pos, neutral_avg, align='center', bottom=pos_avg)
     p1 = plt.bar(y_pos, neg_avg, align='center', bottom=neutral_avg)
-
-
 
     plt.xticks(y_pos, objects)
     plt.ylabel('Emotion score average')
@@ -374,7 +377,7 @@ def EmotionsTeamDistribution():
 
 if __name__ == "__main__":
     print "Emotion statistics processing here!!"
-    #EmotionsProject()
+    EmotionsProject()
     EmotionsProjectProportion()
     #EmotionsProgLang()
     #EmotionsDayofWeek()
