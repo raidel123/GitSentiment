@@ -6,6 +6,7 @@ import pandas as pd
 import json
 import sqlite3 as sqlite
 from texttable import Texttable
+from datetime import datetime
 
 # get main project path (in case this file is compiled alone)
 
@@ -129,11 +130,10 @@ def EmotionsProgLang():
 
     # TODO: Create matplot for these stats
 
-    print df.head()
 
 # Paper: Section 3.3
-def EmotionsTimeofWeek():
-    print "Emotions day and time of week"
+def EmotionsDayofWeek():
+    print "Emotions day and time of week\n"
     # Emotion based on day of the week: Mon - Sun
     # Emotion based on time of the day:
         # [1] Morning:      6:00 - 12:00
@@ -149,13 +149,35 @@ def EmotionsTimeofWeek():
     # | Time of Day |   Commits   |    Mean    |   Stand. Dev.     |
     # --------------------------------------------------------------
 
-    df = pd.read_sql_query("SELECT commit_comment_body FROM commit_sentiments;", db_connection)
+    DayofWeek = {}
+    top6 = []
 
-    print df.head()
+    df = pd.read_sql_query("SELECT commit_sha, sentiment_pos, sentiment_neg FROM commit_sentiments;", db_connection)
+
+    for index, row in df.iterrows():
+
+        datetime_object = datetime.strptime(row['commit_sha'], '%Y-%m-%d %H:%M:%S')
+        day = datetime_object.strftime('%A')
+
+        if day in DayofWeek:
+            DayofWeek[day].append(float(row['sentiment_pos']) + float(row['sentiment_neg']))
+        else:
+            DayofWeek[day] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
+
+    for key in sorted(DayofWeek,  key=lambda k: len(DayofWeek[k]), reverse=True):
+        top6.append([key, reduce(lambda x, y: x + y, DayofWeek[key]) / len(DayofWeek[key])])
+
+    print "Top 6\n"
+
+    t = Texttable()
+    t.add_rows([['Weekday', 'Emotion Score Average']] + top6)
+    print t.draw()
+
+    return top6
 
 # Paper: Section 3.4
-def EmotionsTeamDistribution():
-    print "Emotions and team distribution"
+def EmotionsTimeofDay():
+    print "Emotions and times of day\n"
 
     # This package might be helpful in mapping countries to continents
     # https://pypi.org/project/incf.countryutils/
@@ -166,16 +188,50 @@ def EmotionsTeamDistribution():
     # | Continents  |    Mean    |   Stand. Dev.     |
     # ------------------------------------------------
 
-    df = pd.read_sql_query("SELECT commit_comment_body FROM commit_sentiments;", db_connection)
+    TimeofDay = {}
+    top6 = []
 
-    print df.head()
+    df = pd.read_sql_query("SELECT commit_sha, sentiment_pos, sentiment_neg FROM commit_sentiments;", db_connection)
 
-'''
+    for index, row in df.iterrows():
+
+        datetime_object = datetime.strptime(row['commit_sha'], '%Y-%m-%d %H:%M:%S')
+        hour = datetime_object.strftime('%H')
+        hour = int(hour)
+        # print hour
+
+        if hour >= 6 and hour < 12:
+            hour_key = 'Morning'
+        elif hour >= 12 and hour < 18:
+            hour_key = 'Afternoon'
+        elif hour >= 18 and hour < 23:
+            hour_key = 'Evening'
+        else:
+            hour_key = 'Night'
+
+
+        if hour_key in TimeofDay:
+            TimeofDay[hour_key].append(float(row['sentiment_pos']) + float(row['sentiment_neg']))
+        else:
+            TimeofDay[hour_key] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
+
+    for key in sorted(TimeofDay,  key=lambda k: len(TimeofDay[k]), reverse=True):
+        top6.append([key, reduce(lambda x, y: x + y, TimeofDay[key]) / len(TimeofDay[key])])
+
+    print "Top 6\n"
+
+    t = Texttable()
+    t.add_rows([['Weekday', 'Emotion Score Average']] + top6)
+    print t.draw()
+
+    return top6
+
+
 # 3.5 emotion in project approval
 def EmotionsProjectApproval():
     print "Emotions and project approval"
-'''
+
 
 if __name__ == "__main__":
     print "Emotion statistics processing here!!"
-    EmotionsProgLang()
+    EmotionsTimeofDay()
