@@ -7,6 +7,9 @@ import json
 import sqlite3 as sqlite
 from texttable import Texttable
 from datetime import datetime
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 # get main project path (in case this file is compiled alone)
 
@@ -56,6 +59,19 @@ def EmotionsProject():
     t.add_rows([['Project', 'Emotion Score Average']] + top6)
     print t.draw()
 
+    # objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
+    objects = [val[0] for val in top6]
+    y_pos = np.arange(len(objects))
+    performance = [val[1] for val in top6]
+
+    colors = ['g', 'g', 'g', 'g', 'g', 'g']
+    plt.bar(y_pos, performance, align='center', alpha=0.5, color=colors)
+    plt.xticks(y_pos, objects)
+    plt.ylabel('Emotion score average')
+    plt.title('Fig 1. Emotion Score Average Per Project')
+
+    plt.show()
+
     return top6
 
     # TODO: Create matplot for these stats
@@ -71,24 +87,72 @@ def EmotionsProjectProportion():
     print "Emotions Average/proportion score per project:\n"
 
     projectEmotion = {}
+    # projectEmotion = {'negative':0, 'neutral':0, 'positive':0}
     top6 = []
 
     df = pd.read_sql_query("SELECT project_name, sentiment_pos, sentiment_neg FROM commit_sentiments;", db_connection)
 
     for index, row in df.iterrows():
-        if row['project_name'] in projectEmotion:
-            projectEmotion[row['project_name']].append(float(row['sentiment_pos']) + float(row['sentiment_neg']))
-        else:
-            projectEmotion[row['project_name']] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
+        if row['project_name'] not in projectEmotion:
+            projectEmotion[row['project_name']] = {'negative':[], 'neutral':[], 'positive':[]}
 
-    for key in sorted(projectEmotion,  key=lambda k: len(projectEmotion[k]), reverse=True)[:6]:
-        top6.append([key, reduce(lambda x, y: x + y, projectEmotion[key]) / len(projectEmotion[key])])
+        emotion = float(row['sentiment_pos']) + float(row['sentiment_neg'])
+        if emotion < 1.0:
+            projectEmotion[row['project_name']]['negative'].append(emotion)
+        elif emotion > 1.0:
+            projectEmotion[row['project_name']]['positive'].append(emotion)
+        else:
+            projectEmotion[row['project_name']]['neutral'].append(emotion)
+
+    for key in sorted(projectEmotion,  key=lambda k: (len(projectEmotion[k]['negative']) + len(projectEmotion[k]['neutral']) + len(projectEmotion[k]['positive'])), reverse=True)[:6]:
+
+        neg_val = float(len(projectEmotion[key]['negative'])) / float(len(projectEmotion[key]['negative']) + len(projectEmotion[key]['neutral']) + len(projectEmotion[key]['positive']))
+        neut_val = float(len(projectEmotion[key]['neutral'])) / float(len(projectEmotion[key]['negative']) + len(projectEmotion[key]['neutral']) + len(projectEmotion[key]['positive']))
+        pos_val = float(len(projectEmotion[key]['positive'])) / float(len(projectEmotion[key]['negative']) + len(projectEmotion[key]['neutral']) + len(projectEmotion[key]['positive']))
+
+        print 'neg:', neg_val
+        print 'neut:', neut_val
+        print 'pos:', pos_val
+
+        '''
+        if len(projectEmotion[key]['negative']) != 0:
+            neg_val = reduce(lambda x, y: x + y, projectEmotion[key]['negative']) / len(projectEmotion[key]['negative'])
+
+        if len(projectEmotion[key]['neutral']) != 0:
+            net_val = reduce(lambda x, y: x + y, projectEmotion[key]['neutral']) / len(projectEmotion[key]['neutral'])
+
+        if len(projectEmotion[key]['positive']) != 0:
+            pos_val = reduce(lambda x, y: x + y, projectEmotion[key]['positive']) / len(projectEmotion[key]['positive'])
+        '''
+
+        top6.append([key, neg_val, neut_val, pos_val])
+
 
     print "Top 6\n"
 
     t = Texttable()
-    t.add_rows([['Project', 'Emotion Score Average']] + top6)
+    t.add_rows([['Project', 'Negative', 'Neutral', 'Positive']] + top6)
     print t.draw()
+
+    objects = [val[0] for val in top6]
+    y_pos = np.arange(len(objects))
+
+    neg_avg = [val[1] for val in top6]
+    neutral_avg = [val[2] for val in top6]
+    pos_avg = [val[3] for val in top6]
+
+    p3 = plt.bar(y_pos, pos_avg, align='center')
+    p2 = plt.bar(y_pos, neutral_avg, align='center', bottom=pos_avg)
+    p1 = plt.bar(y_pos, neg_avg, align='center', bottom=neutral_avg)
+
+
+
+    plt.xticks(y_pos, objects)
+    plt.ylabel('Emotion score average')
+    plt.title('Fig 2. Proportion of positive, neutral and negative commit comments per project')
+    plt.legend((p1[0], p2[0], p3[0]), ('Negative', 'Neutral', 'Positive'))
+
+    plt.show()
 
     return top6
 
@@ -126,12 +190,24 @@ def EmotionsProgLang():
     t.add_rows([['Language', 'Emotion Score Average']] + top6)
     print t.draw()
 
+    objects = [val[0] for val in top6]
+    y_pos = np.arange(len(objects))
+    performance = [val[1] for val in top6]
+
+    colors = ['g', 'g', 'g', 'g', 'g', 'g']
+    plt.bar(y_pos, performance, align='center', alpha=0.5, color=colors)
+    plt.xticks(y_pos, objects)
+    plt.ylabel('Emotion score average')
+    plt.title('Fig 2. Proportion of positive, neutral and negative commit comments per project')
+
+    plt.show()
+
     return top6
 
     # TODO: Create matplot for these stats
 
 
-# Paper: Section 3.3
+# Paper: Section 3.3A
 def EmotionsDayofWeek():
     print "Emotions day and time of week\n"
     # Emotion based on day of the week: Mon - Sun
@@ -173,9 +249,21 @@ def EmotionsDayofWeek():
     t.add_rows([['Weekday', 'Emotion Score Average']] + top6)
     print t.draw()
 
+    objects = [val[0] for val in top6]
+    y_pos = np.arange(len(objects))
+    performance = [val[1] for val in top6]
+
+    colors = ['g', 'g', 'g', 'g', 'g', 'g']
+    plt.bar(y_pos, performance, align='center', alpha=0.5, color=colors)
+    plt.xticks(y_pos, objects)
+    plt.ylabel('Emotion score average')
+    plt.title('Fig 2. Proportion of positive, neutral and negative commit comments per project')
+
+    plt.show()
+
     return top6
 
-# Paper: Section 3.4
+# Paper: Section 3.3B
 def EmotionsTimeofDay():
     print "Emotions and times of day\n"
 
@@ -224,14 +312,70 @@ def EmotionsTimeofDay():
     t.add_rows([['Weekday', 'Emotion Score Average']] + top6)
     print t.draw()
 
+    objects = [val[0] for val in top6]
+    y_pos = np.arange(len(objects))
+    performance = [val[1] for val in top6]
+
+    colors = ['g', 'g', 'g', 'g', 'g', 'g']
+    plt.bar(y_pos, performance, align='center', alpha=0.5, color=colors)
+    plt.xticks(y_pos, objects)
+    plt.ylabel('Emotion score average')
+    plt.title('Fig 2. Proportion of positive, neutral and negative commit comments per project')
+
+    plt.show()
+
     return top6
 
+# TODO
+# 3.4 emotion and team distribution
+def EmotionsTeamDistribution():
+    print "Emotions and project approval\n"
 
-# 3.5 emotion in project approval
-def EmotionsProjectApproval():
-    print "Emotions and project approval"
+    TimeofDay = {}
+    top6 = []
 
+    df = pd.read_sql_query("SELECT location FROM commit_sentiments;", db_connection)
+    print df
+
+    '''
+    for index, row in df.iterrows():
+
+        datetime_object = datetime.strptime(row['commit_sha'], '%Y-%m-%d %H:%M:%S')
+        hour = datetime_object.strftime('%H')
+        hour = int(hour)
+        # print hour
+
+        if hour >= 6 and hour < 12:
+            hour_key = 'Morning'
+        elif hour >= 12 and hour < 18:
+            hour_key = 'Afternoon'
+        elif hour >= 18 and hour < 23:
+            hour_key = 'Evening'
+        else:
+            hour_key = 'Night'
+
+
+        if hour_key in TimeofDay:
+            TimeofDay[hour_key].append(float(row['sentiment_pos']) + float(row['sentiment_neg']))
+        else:
+            TimeofDay[hour_key] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
+
+    for key in sorted(TimeofDay,  key=lambda k: len(TimeofDay[k]), reverse=True):
+        top6.append([key, reduce(lambda x, y: x + y, TimeofDay[key]) / len(TimeofDay[key])])
+
+    print "Top 6\n"
+
+    t = Texttable()
+    t.add_rows([['Weekday', 'Emotion Score Average']] + top6)
+    print t.draw()
+
+    return top6
+    '''
 
 if __name__ == "__main__":
     print "Emotion statistics processing here!!"
-    EmotionsTimeofDay()
+    #EmotionsProject()
+    EmotionsProjectProportion()
+    #EmotionsProgLang()
+    #EmotionsDayofWeek()
+    #EmotionsTimeofDay()

@@ -18,10 +18,14 @@ if __name__ == "__main__":
     # TODO: this is the main file, call necessary functions
 
     es.EmotionsProject()
+    es.EmotionsProjectProportion()
+    es.EmotionsProgLang()
+    es.EmotionsDayofWeek()
+    es.EmotionsTimeofDay()
 
-    '''
     # code below this line is for testing purposes
 
+    '''
     # example run obtaining data for commit_comments collection(table) name
     comments_table = bsonparse.GetDBTable('commit_comments')
     repos = bsonparse.GetDBTable('repos')
