@@ -3,22 +3,133 @@
 import sys
 import os
 import pandas as pd
+import json
+import sqlite3 as sqlite
+from texttable import Texttable
+
+# get main project path (in case this file is compiled alone)
+
+if os.name == 'nt':
+    # Windows
+    context = os.getcwd().split('\\')
+else:
+    # Ubuntu
+    context = os.getcwd().split('/')
+
+if context[-1] == 'emotionsStat':
+    context = '/'.join(context[:-1])
+else:
+    context = os.getcwd()
+
+db_location = context + '/sentimentAnalysis/whole_database_new.db'
+db_connection = sqlite.connect(db_location)
+
+# Paper: Section 3.1A
+# assume table is a list of dictionaries
+
+# get data from table
+# import to pandas
+# use pandas for displaying statistical data, and display bar graph
+# https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.describe.html
+def EmotionsProject():
+
+    print "Emotions Average/proportion score per project:\n"
+
+    projectEmotion = {}
+    top6 = []
+
+    df = pd.read_sql_query("SELECT project_name, sentiment_pos, sentiment_neg FROM commit_sentiments;", db_connection)
+
+    for index, row in df.iterrows():
+        if row['project_name'] in projectEmotion:
+            projectEmotion[row['project_name']].append(float(row['sentiment_pos']) + float(row['sentiment_neg']))
+        else:
+            projectEmotion[row['project_name']] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
+
+    for key in sorted(projectEmotion,  key=lambda k: len(projectEmotion[k]), reverse=True)[:6]:
+        top6.append([key, reduce(lambda x, y: x + y, projectEmotion[key]) / len(projectEmotion[key])])
+
+    print "Top 6\n"
+
+    t = Texttable()
+    t.add_rows([['Project', 'Emotion Score Average']] + top6)
+    print t.draw()
+
+    return top6
+
+    # TODO: Create matplot for these stats
+
+# TODO
+# Paper: Section 3.1B, proportion of comment emotion types per project
+# assume table is a list of dictionaries
+# get data from table
+# import to pandas
+# use pandas for displaying statistical data using bar graph
+# https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.describe.html
+def EmotionsProjectProportion():
+    print "Emotions Average/proportion score per project:\n"
+
+    projectEmotion = {}
+    top6 = []
+
+    df = pd.read_sql_query("SELECT project_name, sentiment_pos, sentiment_neg FROM commit_sentiments;", db_connection)
+
+    for index, row in df.iterrows():
+        if row['project_name'] in projectEmotion:
+            projectEmotion[row['project_name']].append(float(row['sentiment_pos']) + float(row['sentiment_neg']))
+        else:
+            projectEmotion[row['project_name']] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
+
+    for key in sorted(projectEmotion,  key=lambda k: len(projectEmotion[k]), reverse=True)[:6]:
+        top6.append([key, reduce(lambda x, y: x + y, projectEmotion[key]) / len(projectEmotion[key])])
+
+    print "Top 6\n"
+
+    t = Texttable()
+    t.add_rows([['Project', 'Emotion Score Average']] + top6)
+    print t.draw()
+
+    return top6
+
+    # TODO: Create matplot for these stats
 
 # Paper: Section 3.2
 # assume table is a list of dictionaries
-def EmotionsProgLang(table):
+# get data from table
+# use pandas for displaying statistical data, and dosplay table
+# https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.describe.html
+# --------------------------------------------------------------
+# | Language    |  Commits   |     Mean    |   Stand. Dev.     |
+# --------------------------------------------------------------
+
+def EmotionsProgLang():
     print "Emotions program language"
 
-    # key = language, value = [commits, mean, std. dev.]
-    language_emotion = {}
+    projectLang = {}
+    top6 = []
 
-    # get data from table (figure out format)
-    # import to pandas if possible
-    # use pandas for displaying statistical data, and dosplay table
-    # https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.describe.html
-    # --------------------------------------------------------------
-    # | Language    |  Commits   |     Mean    |   Stand. Dev.     |
-    # --------------------------------------------------------------
+    df = pd.read_sql_query("SELECT project_language, sentiment_pos, sentiment_neg FROM commit_sentiments;", db_connection)
+
+    for index, row in df.iterrows():
+        if row['project_language'] in projectLang:
+            projectLang[row['project_language']].append(float(row['sentiment_pos']) + float(row['sentiment_neg']))
+        else:
+            projectLang[row['project_language']] = [float(row['sentiment_pos']) + float(row['sentiment_neg'])]
+
+    for key in sorted(projectLang,  key=lambda k: len(projectLang[k]), reverse=True)[:6]:
+        top6.append([key, reduce(lambda x, y: x + y, projectLang[key]) / len(projectLang[key])])
+
+    print "Top 6\n"
+
+    t = Texttable()
+    t.add_rows([['Language', 'Emotion Score Average']] + top6)
+    print t.draw()
+
+    return top6
+
+    # TODO: Create matplot for these stats
+
+    print df.head()
 
 # Paper: Section 3.3
 def EmotionsTimeofWeek():
@@ -38,6 +149,10 @@ def EmotionsTimeofWeek():
     # | Time of Day |   Commits   |    Mean    |   Stand. Dev.     |
     # --------------------------------------------------------------
 
+    df = pd.read_sql_query("SELECT commit_comment_body FROM commit_sentiments;", db_connection)
+
+    print df.head()
+
 # Paper: Section 3.4
 def EmotionsTeamDistribution():
     print "Emotions and team distribution"
@@ -51,6 +166,10 @@ def EmotionsTeamDistribution():
     # | Continents  |    Mean    |   Stand. Dev.     |
     # ------------------------------------------------
 
+    df = pd.read_sql_query("SELECT commit_comment_body FROM commit_sentiments;", db_connection)
+
+    print df.head()
+
 '''
 # 3.5 emotion in project approval
 def EmotionsProjectApproval():
@@ -59,3 +178,4 @@ def EmotionsProjectApproval():
 
 if __name__ == "__main__":
     print "Emotion statistics processing here!!"
+    EmotionsProgLang()
