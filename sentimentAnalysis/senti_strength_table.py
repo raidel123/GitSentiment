@@ -66,7 +66,7 @@ if __name__ == "__main__":
 				 sentiment_pos, 
 				 sentiment_neg)
 				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", 
-				(ccid, sha, body, created_at, project_name, language, email, login, loc, pos, neg)) # execute insert to add the score and name
+				(ccid, body, created_at, sha, project_name, language, email, login, loc, pos, neg)) # execute insert to add the score and name
 			con.commit() # commit the query
 
 
