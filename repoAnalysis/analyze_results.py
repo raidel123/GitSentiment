@@ -3,12 +3,27 @@ from DB import Database
 from Users import Users
 from utilities import retrieve_users, connect_to_db, VALID_LANGUAGES
 import matplotlib.pyplot as plt
+import os
+
+# get main project path (in case this file is compiled alone)
+
+if os.name == 'nt':
+    # Windows
+    context = os.getcwd().split('\\')
+else:
+    # Ubuntu
+    context = os.getcwd().split('/')
+
+if context[-1] == 'repoAnalysis':
+    context = '/'.join(context[:-1])
+else:
+    context = os.getcwd()
 
 def get_language_results(users, lang):
     qualityScores = [user.qualityAverage for user in users if user.language == lang]
     sentimentScores = [user.sentiment for user in users if user.language == lang]
     return qualityScores, sentimentScores
-        
+
 def print_graph(axisTitle, data):
     plt.figure()
     plt.boxplot(data)
@@ -16,7 +31,7 @@ def print_graph(axisTitle, data):
     plt.show()
 
 def analyze():
-    database_connection = connect_to_db('results.sql')
+    database_connection = connect_to_db(context + '/repoAnalysis/results.sql')
     users = retrieve_users(database_connection, 'Users', 'commenter_login, language, sentiment_score, quality')
     print len(users)
     # remove all users with 0.0 qualityAverage as it means we were unable to get a score for some reason
