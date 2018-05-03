@@ -11,6 +11,13 @@ if __name__ == "__main__":
 
     	print(rows)
 
+	with sqlite.connect('./whole_database_new.db') as con:	
+		cur = con.cursor() # get the current spot for executing		
+		cur.execute("SELECT project_language FROM commit_sentiments")
+		rows = cur.fetchall()
+
+    	print(rows)
+
 """TABLE
 				commit_sentiments (commit_comment_id int,
 									commit_comment_body int,
