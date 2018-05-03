@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+
+'''
+@author: Raidel Hernandez
+'''
+
 import sys
 import os
 import pandas as pd
@@ -350,7 +355,7 @@ def EmotionsTimeofDay():
 
     return top6
 
-'''
+
 # TODO
 # 3.4 emotion and team distribution
 def EmotionsTeamDistribution():
@@ -364,14 +369,20 @@ def EmotionsTeamDistribution():
     df = df
 
     print df
-'''
+
+
+def paperStats():
+    df = pd.read_sql_query("SELECT DISTINCT(project_language) FROM commit_sentiments;", db_connection)
+    print df
 
 if __name__ == "__main__":
     print "Emotion statistics processing here!!\n"
-    EmotionsProject()
-    EmotionsProjectProportion()
-    EmotionsProgLang()
-    EmotionsDayofWeek()
-    EmotionsTimeofDay()
+    #EmotionsProject()
+    #EmotionsProjectProportion()
+    #EmotionsProgLang()
+    #EmotionsDayofWeek()
+    #EmotionsTimeofDay()
     # EmotionsProject()
-    # EmotionsTeamDistribution()
+    EmotionsTeamDistribution()
+
+    paperStats()

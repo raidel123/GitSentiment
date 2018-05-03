@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+
+
 import os
 import sys
 
@@ -7,31 +9,25 @@ import sys
 sys.path.append(os.getcwd() + "/utils")
 sys.path.append(os.getcwd() + "/repoAnalysis")
 sys.path.append(os.getcwd() + "/emotionsStat")
-# sys.path.append(os.getcwd() + "/sentimentAnalysis")
+sys.path.append(os.getcwd() + "/sentimentAnalysis")
 
 # db table parsing script inside utils directory
 import bsonparser as bsonparse
 import emotionStat as es
+import analyze_results as ra
 
-if __name__ == "__main__":
-
-    # TODO: this is the main file, call necessary functions
-
+def CreateEmotionGraphs():
     es.EmotionsProject()
     es.EmotionsProjectProportion()
     es.EmotionsProgLang()
     es.EmotionsDayofWeek()
     es.EmotionsTimeofDay()
 
-    # code below this line is for testing purposes
+if __name__ == "__main__":
 
-    '''
-    # example run obtaining data for commit_comments collection(table) name
-    comments_table = bsonparse.GetDBTable('commit_comments')
-    repos = bsonparse.GetDBTable('repos')
+    # TODO: this is the main file, call necessary functions
 
-    for comment in comments_table:
-        if 'commit_id' in comment:
-            print comment['commit_id']
-            break   # just print 1 value for testing
-    '''
+    # Show all the graphs created by Raidel,
+    # graphs are similar to those presented in the assigned paper.
+    # CreateEmotionGraphs()
+    ra.analyze()
