@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-
 import os
 import sys
 
@@ -29,5 +27,5 @@ if __name__ == "__main__":
 
     # Show all the graphs created by Raidel,
     # graphs are similar to those presented in the assigned paper.
-    # CreateEmotionGraphs()
+    CreateEmotionGraphs()
     ra.analyze()
