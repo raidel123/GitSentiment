@@ -28,12 +28,18 @@ retrieve users from SQL database and create array of Users objects initializing 
 """
 from Users import Users
 
-
 def retrieve_users(db, table, attributes, limit=None):
     user_list_str = db.get(table, attributes, limit)
     users = []
     for user in user_list_str:
-        users.append(Users(**user))
+        temp_user = Users(**user)
+        flag = True
+        for u in users:
+            if u.username == temp_user.username:
+               u.add_sentiment_score(temp_user.sentiment)
+               flag = False
+        if flag:
+            users.append(Users(**user))
     return users
 
 
@@ -66,7 +72,6 @@ Github() initialization does not throw error on its own
 Finally, check to see if github APIv3 is up, terminate if not
 """
 from github import Github, BadCredentialsException
-
 
 def authenticate():
     try:
@@ -102,7 +107,10 @@ examine a Github users repositories, searching for their most used language
 from collections import Counter
 
 def get_most_used_language(git_user):
-    return Counter([repo.language for repo in git_user.get_repos()]).most_common(1)[0][0]
+    try:
+        return Counter([repo.language for repo in git_user.get_repos()]).most_common(1)[0][0]
+    except IndexError:
+        return None
 
 """
 @params temp Name of NamedTemporaryFile
