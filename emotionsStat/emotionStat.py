@@ -17,7 +17,6 @@ import numpy as np
 from scipy import stats
 from scipy.stats import norm
 
-
 # get main project path (in case this file is compiled alone)
 
 if os.name == 'nt':
@@ -355,34 +354,59 @@ def EmotionsTimeofDay():
 
     return top6
 
-
+'''
 # TODO
 # 3.4 emotion and team distribution
 def EmotionsTeamDistribution():
     print "Emotions and project approval\n"
 
-    TimeofDay = {}
+    location = {}
     top6 = []
 
     df = pd.read_sql_query("SELECT project_name, sentiment_pos, sentiment_neg, location FROM commit_sentiments;", db_connection)
+    # print df['location']
+    count = 0
+    for item in df['location'].tolist():
+        if item is not None:
+            item_encode = item.encode('utf-8')
 
-    df = df
+            split1 = item_encode.split(',')
+            split2 = item_encode.split('-')
+            split3 = item_encode.split(' ')
 
-    print df
+            if len(split1) > 1:
+                print split1[-1]
 
+            elif len(split2) > 1:
+                print split2[-1]
+
+            elif len(split3) > 1:
+                print split3[-1]
+
+            else:
+                print item_encode
+
+        count += 1
+        if count == 50:
+            break;
+
+    # df = df.head()
+
+    # print df
+'''
 
 def paperStats():
     df = pd.read_sql_query("SELECT DISTINCT(project_language) FROM commit_sentiments;", db_connection)
     print df
 
 if __name__ == "__main__":
+    # TODO uncomment
     print "Emotion statistics processing here!!\n"
-    #EmotionsProject()
-    #EmotionsProjectProportion()
-    #EmotionsProgLang()
-    #EmotionsDayofWeek()
-    #EmotionsTimeofDay()
-    # EmotionsProject()
-    EmotionsTeamDistribution()
+    EmotionsProject()
+    EmotionsProjectProportion()
+    EmotionsProgLang()
+    EmotionsDayofWeek()
+    EmotionsTimeofDay()
 
-    paperStats()
+    # function for testing
+    # paperStats()

@@ -38,7 +38,7 @@ Deactivating (after executing program)
     $ pip install -r requirements.txt
 ```
 
-## Database Setup/Download
+## Database Setup/Download (Not Required)
 [ MSR 2014 Mining Challenge Dataset ](http://ghtorrent.org/msr14.html)
 * perform these operations within the main repo directory, it should create a dump directory
 ```
@@ -53,4 +53,3 @@ Deactivating (after executing program)
 ```
 ## Other functionality
 If you want to run the repoAnalysis, you must have the latest version of [node](https://nodejs.org/en/download/package-manager/), and you must install the JS linter via `npm install -g standard --save-devsour`. For all dependencies (assuming npm and pip on system), just run `./install.sh`
-

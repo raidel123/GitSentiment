@@ -30,7 +30,6 @@ def get_code_quality_py(temp, command=None):
 
 """
 will determine the code quality by examining ratio of linter warnings to length of code
-ruby linter lists the number of warnings so we need to use regex to get this amount
 @params temp Name of NamedTemporaryFile to be analyzed
 @ret float Code quality score (if no warnigs, return a perfect score)
 """ 
@@ -44,6 +43,16 @@ def get_code_quality(temp, command):
     except ZeroDivisionError:
         return 0
 
+
+"""
+easy/safe way to create temporary files
+needed for pylint analyzation (will create temp file of user code to analyze)
+"""
+import tempfile
+"""
+attempt to write to a temporary file if not too large
+most linters expect to analyze a file
+"""
 def handle_file_writing(quality_function, suffix, _file, user, command):
     with tempfile.NamedTemporaryFile(suffix=suffix) as temp:
         # dont attempt to analyze file if too large
@@ -64,11 +73,6 @@ def handle_file_writing(quality_function, suffix, _file, user, command):
         user.add_quality_score(quality_function(temp.name, command))
         temp.close()
 
-"""
-easy/safe way to create temporary files
-needed for pylint analyzation (will create temp file of user code to analyze)
-"""
-import tempfile
 """
 go through all top level documents within projects and run them through language appropriate linters
 then average score for that user
@@ -101,7 +105,6 @@ def examine_user_files(user, git_user):
 def main():
     github = authenticate()
 
-    #TODO: read userid from SQL database to be added by andrew
     sentiment_db = connect_to_db('../sentimentAnalysis/whole_database_new.db')
     users = retrieve_users(sentiment_db, 'commit_sentiments', 'commenter_login, sentiment_pos, sentiment_neg')
 
@@ -110,7 +113,7 @@ def main():
 
     """
     loop over every user object found in database and update their code quality information in
-    retsults database
+    retults database
     """
     for user in users:
         try:
@@ -133,6 +136,7 @@ def main():
         except RateLimitExceededException:
             print "need to wait"
             sleep(3600)
+        # lets not terminate on errors for indivdual user, just go to next user
         except GithubException:
             continue
         except Exception:
