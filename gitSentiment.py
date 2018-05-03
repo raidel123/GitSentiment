@@ -25,7 +25,9 @@ if __name__ == "__main__":
 
     # TODO: this is the main file, call necessary functions
 
-    # Show all the graphs created by Raidel,
+    # Show all the graphs created by @Raidel,
     # graphs are similar to those presented in the assigned paper.
     CreateEmotionGraphs()
+
+    # Call github analyzer created by @Tyler
     ra.analyze()
