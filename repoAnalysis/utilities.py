@@ -14,8 +14,7 @@ except ImportError:
     try:
         from data import USER, PASSWORD
     except:
-        raise ImportError(
-            'check to see if you have a data.py in repoAnalysis directory')
+        print "unable to import github credentials"
 
 """
 Languages in which we can analyze (determined by the linters installed)

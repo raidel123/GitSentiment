@@ -29,4 +29,4 @@ def analyze():
         print_graph(lang+" Average Sentiment", sentimentScores)
 
 if __name__ == '__main__':
-    main()
+    analyze()
